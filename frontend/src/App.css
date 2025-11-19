@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn-login{
+  background-color: blanchedalmond;
+  color: black;
+  border: 1px solid black;
+}
