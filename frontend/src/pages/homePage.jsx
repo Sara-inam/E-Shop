@@ -1,41 +1,388 @@
-import React from "react";
-import Header from "../components/Header";
-import ProductCard from "../ui/ProductCard";
-import FeaturedCard from "../ui/FeaturedCard";
-import { Box } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, Checkbox, FormControlLabel, Divider, Grid, Button } from "@mui/material";
+import SortIcon from "@mui/icons-material/Sort";
+import { useDispatch } from "react-redux";
+import { addItem } from "../redux/slices/cartSlice";
 
 export default function HomePage() {
-  return (
-    <>
+  const [showSidebar, setShowSidebar] = useState(true);
+  const dispatch=useDispatch();
 
+  const [categories, setCategories] = useState({
+    men: false,
+    women: false,
+    kids: false,
+    accessories: false,
+    footwear: false,
+  });
+
+  const Category = ["Home", "Fashion", "Bags", "Footwear", "Beauty", "Jewellery"];
+
+  const [brands, setBrands] = useState({
+    nike: false,
+    adidas: false,
+    puma: false,
+    levis: false,
+    zara: false,
+    hnm: false,
+  });
+
+  const productsList = [
+    {
+      title: "Women TShirt",
+      category: "Fashion",
+      brand: "Nike",
+      price: "Rs 150",
+      image: "/prod1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Product One",
+      category: "Bags",
+      brand: "Adidas",
+      price: "Rs 350",
+      image: "/prod2.jpg",
+      originalPrice: "450",
+    },
+    {
+      title: "Kids Tshirt",
+      category: "Footwear",
+      brand: "Nike",
+      price: "Rs 250",
+      image: "/prod1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Review Check",
+      category: "Beauty",
+      brand: "Puma",
+      price: "Rs 1000",
+      image: "/prod4-1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Product One",
+      category: "Jewellery",
+      brand: "Adidas",
+      price: "Rs 350",
+      image: "/prod2.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Kids Tshirt",
+      category: "Beauty",
+      brand: "Nike",
+      price: "Rs 250",
+      image: "/prod3.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Review Check",
+      category: "Jewellery",
+      brand: "Puma",
+      price: "Rs 1000",
+      image: "/prod4-1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Product One",
+      category: "Footwear",
+      brand: "Adidas",
+      price: "Rs 350",
+      image: "/prod2.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Kids Tshirt",
+      category: "Bags",
+      brand: "Nike",
+      price: "Rs 250",
+      image: "/prod3.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Review Check",
+      category: "Fashion",
+      brand: "Puma",
+      price: "Rs 1000",
+      image: "/prod4-1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Women TShirt",
+      category: "Bags",
+      brand: "Nike",
+      price: "Rs 150",
+      image: "/prod1.jpg",
+      originalPrice: "250",
+    },
+    {
+      title: "Kids Tshirt",
+      category: "Bags",
+      brand: "Nike",
+      price: "Rs 250",
+      image: "/prod3.jpg",
+      originalPrice: "250",
+    },
+  ];
+
+  // Helper function to pick N random items
+  const getRandomProductsByCategory = (categories, products, count = 3) => {
+    const result = [];
+
+    categories.forEach((cat) => {
+      // Filter products of this category
+      const categoryProducts = products.filter((p) => p.category === cat);
+
+      // Shuffle products and pick `count` items
+      const shuffled = categoryProducts.sort(() => 0.5 - Math.random());
+
+      // Add top `count` products to result
+      result.push(...shuffled.slice(0, count));
+    });
+
+    return result;
+  };
+  const productList = getRandomProductsByCategory(Category, productsList, 3);
+  return (
+    <Box sx={{ mt: 3 }}>
       <Box
         sx={{
-          marginTop: 10,
+          width: "100%",
+          background: "white",
+          borderTop: "1px solid #eee",
+          borderBottom: "1px solid #eee",
+          py: 1.5,
+          px: 3,
           display: "flex",
-          justifyContent: "center",
-          gap: 4,
-          flexWrap: "wrap",
-          paddingBottom: 10,
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        {/* Left card */}
-        <ProductCard
-          image="./drink-1.png"
-          title="Midnight Mint Mocha Frappuccino"
-        />
+        {/* Left Side */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            cursor: "pointer",
+            color: "#0A1D37",
+            "&:hover": {
+              color: "#FF5722",
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => setShowSidebar(!showSidebar)}>
+          <Typography sx={{ fontWeight: 600 }}>Shop By Category</Typography>
+          <Typography variant="body2" sx={{ transform: "translateY(2px)" }}>
+            ▼
+          </Typography>
+        </Box>
 
-        {/* Center green card */}
-        <FeaturedCard
-          image="./drink-3.png"
-          title="Midnight Mint Mocha Frappuccino"
-        />
-
-        {/* Right card */}
-        <ProductCard
-          image="./drink-2.png"
-          title="Midnight Mint Mocha Frappuccino"
-        />
+        {/* Right Side of Categories */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3, marginRight: "20px" }}>
+          {Category &&
+            Category.map((item, i) => (
+              <Typography
+                key={i}
+                sx={{
+                  cursor: "pointer",
+                  color: "#0A1D37",
+                  fontSize: "15px",
+                  transition: "0.3s ease",
+                  "&:hover": {
+                    color: "#FF5722",
+                    transform: "translateY(-3px)",
+                  },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
+        </Box>
       </Box>
-    </>
+
+      <Box sx={{ display: "flex", p: 3, mt: 2 }}>
+        {/*  Left Filter Bar  */}
+        <Box
+          sx={{
+            width: showSidebar ? "450px" : "0px",
+            pr: showSidebar ? 3 : 0,
+            overflow: "hidden",
+            transition: "all 0.4s ease",
+          }}
+        >
+          {showSidebar && (
+            <>
+              <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>
+                Filters
+              </Typography>
+
+              <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>
+                Category
+              </Typography>
+              <Box>
+                {Object.keys(categories).map((cat) => (
+                  <FormControlLabel
+                    key={cat}
+                    control={
+                      <Checkbox
+                        checked={categories[cat]}
+                        onChange={() =>
+                          setCategories({ ...categories, [cat]: !categories[cat] })
+                        }
+                      />
+                    }
+                    label={cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  />
+                ))}
+              </Box>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>
+                Brand
+              </Typography>
+              <Box>
+                {Object.keys(brands).map((br) => (
+                  <FormControlLabel
+                    key={br}
+                    control={
+                      <Checkbox
+                        checked={brands[br]}
+                        onChange={() =>
+                          setBrands({ ...brands, [br]: !brands[br] })
+                        }
+                      />
+                    }
+                    label={br.charAt(0).toUpperCase() + br.slice(1)}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
+        </Box>
+
+        {/* Product Grid */}
+        <Box sx={{ flexGrow: 1, transition: "0.4s ease" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 3,
+              alignItems: "center",
+            }}>
+            <Typography variant="h5" fontWeight={600} sx={{ color: "#0A1D37" }}>
+              All Products
+            </Typography>
+            {/* <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Typography variant="body1">{productList.length} Products</Typography>
+              <Button startIcon={<SortIcon />} variant="outlined" sx={{ borderRadius: 2 }}>
+                Sort by
+              </Button>
+            </Box> */}
+          </Box>
+          {/* Products Grid */}
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "stretch",
+            }}
+          >
+            {productList.map((product, index) => (
+              <Grid item key={index} sx={{ flex: "0 0 260px", maxWidth: "260px", display: "flex" }}>
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderRadius: 2,
+                    boxShadow: "0px 2px 10px rgba(0,0,0,0.1)",
+                    overflow: "hidden",
+                    bgcolor: "white",
+                    display: "flex",
+                    flexDirection: "column",
+                    transition: "0.3s",
+                    height: 420,
+                    // "&:hover": {
+                    //   transform: "translateY(-5px)",
+                    //   boxShadow: "0px 4px 16px rgba(0,0,0,0.2)",
+                    // },
+                  }}>
+                  {/* Image */}
+                  <Box sx={{ width: "100%", height: 250, overflow: "hidden" }}>
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Box>
+                  {/* Content */}
+                  <Box sx={{ p: 2, display: "flex", flexDirection: "column", flexGrow: 1 }}>
+                    <Typography variant="body2" sx={{ color: "gray", mt: 0.5, fontSize: "12px" }}>
+                      {product.category} — {product.brand}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={600} sx={{ fontSize: "16px", color: "#0A1D37" }}>
+                      {product.title}
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 1,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          textDecoration: "line-through",
+                          color: "gray",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Rs.{product.originalPrice}
+                      </Typography>
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{ fontSize: "18px", color: "#0A1D37" }}
+                      >
+                        {product.price}
+                      </Typography>
+                    </Box>
+                    <Button
+                     onClick={() => dispatch(addItem({ ...product, id: index }))}
+                      variant="outlined"
+                      fullWidth
+                      sx={{
+                        mt: 2,
+                        borderColor: "#0A1D37",
+                        color: "#0A1D37",
+                        borderRadius: 2,
+                        py: 1,
+                        textTransform: "none",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        "&:hover": {
+                          backgroundColor: "#0A1D37",
+                          color: "white",
+                          borderColor: "#0A1D37",
+                        }
+                      }}
+                    >
+                      Add to cart
+                    </Button>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Box>
+    </Box>
   );
 }

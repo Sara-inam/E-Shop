@@ -4,6 +4,11 @@ import HomePage from './pages/homePage';
 import LoginPage from './pages/loginPage';
 import SignUpPage from './pages/signupPage';
 import Header from './components/Header';
+import Products from './components/Products';
+import Footer from './components/Footer';
+import CartPage from './pages/addToCartPage';
+import Dashboared from './components/Dashboared';
+import AdminDashboard from './pages/AdminPages/AdminDashboard';
 
 function App() {
   return (
@@ -15,7 +20,8 @@ function App() {
           element={
             <>
               <Header />
-              <HomePage />
+              <Products/>
+              <Footer/>
             </>
           }
         />
@@ -25,6 +31,9 @@ function App() {
 
         {/* Signup route without Header */}
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/dashboard" element={<AdminDashboard/>} />
+
       </Routes>
     </Router>
   );
