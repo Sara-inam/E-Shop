@@ -59,7 +59,7 @@ const SignUpPage = () => {
 
     try {
       const response = await axios.post(
-        "https://adjusted-convert-costs-outdoor.trycloudflare.com/api/auth/signup",
+        "https://exemption-cornwall-serum-kernel.trycloudflare.com/api/auth/signup",
         payload,
         {
           headers: {

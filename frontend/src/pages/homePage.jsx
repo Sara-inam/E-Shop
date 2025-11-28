@@ -3,10 +3,14 @@ import { Box, Typography, Checkbox, FormControlLabel, Divider, Grid, Button } fr
 import SortIcon from "@mui/icons-material/Sort";
 import { useDispatch } from "react-redux";
 import { addItem } from "../redux/slices/cartSlice";
+import axios from "axios";
+import { useEffect } from "react";
+
 
 export default function HomePage() {
   const [showSidebar, setShowSidebar] = useState(true);
-  const dispatch=useDispatch();
+  const [products, setProducts] = useState([]);
+  const dispatch = useDispatch();
 
   const [categories, setCategories] = useState({
     men: false,
@@ -27,123 +31,140 @@ export default function HomePage() {
     hnm: false,
   });
 
-  const productsList = [
-    {
-      title: "Women TShirt",
-      category: "Fashion",
-      brand: "Nike",
-      price: "Rs 150",
-      image: "/prod1.jpg",
-      originalPrice: "250",
+  // const productsList = [
+  //   {
+  //     title: "Women TShirt",
+  //     category: "Fashion",
+  //     brand: "Nike",
+  //     price: "Rs 150",
+  //     image: "/prod1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Product One",
+  //     category: "Bags",
+  //     brand: "Adidas",
+  //     price: "Rs 350",
+  //     image: "/prod2.jpg",
+  //     originalPrice: "450",
+  //   },
+  //   {
+  //     title: "Kids Tshirt",
+  //     category: "Footwear",
+  //     brand: "Nike",
+  //     price: "Rs 250",
+  //     image: "/prod1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Review Check",
+  //     category: "Beauty",
+  //     brand: "Puma",
+  //     price: "Rs 1000",
+  //     image: "/prod4-1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Product One",
+  //     category: "Jewellery",
+  //     brand: "Adidas",
+  //     price: "Rs 350",
+  //     image: "/prod2.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Kids Tshirt",
+  //     category: "Beauty",
+  //     brand: "Nike",
+  //     price: "Rs 250",
+  //     image: "/prod3.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Review Check",
+  //     category: "Jewellery",
+  //     brand: "Puma",
+  //     price: "Rs 1000",
+  //     image: "/prod4-1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Product One",
+  //     category: "Footwear",
+  //     brand: "Adidas",
+  //     price: "Rs 350",
+  //     image: "/prod2.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Kids Tshirt",
+  //     category: "Bags",
+  //     brand: "Nike",
+  //     price: "Rs 250",
+  //     image: "/prod3.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Review Check",
+  //     category: "Fashion",
+  //     brand: "Puma",
+  //     price: "Rs 1000",
+  //     image: "/prod4-1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Women TShirt",
+  //     category: "Bags",
+  //     brand: "Nike",
+  //     price: "Rs 150",
+  //     image: "/prod1.jpg",
+  //     originalPrice: "250",
+  //   },
+  //   {
+  //     title: "Kids Tshirt",
+  //     category: "Bags",
+  //     brand: "Nike",
+  //     price: "Rs 250",
+  //     image: "/prod3.jpg",
+  //     originalPrice: "250",
+  //   },
+  // ];
+
+  const axiosAuth = axios.create({
+    baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`,
     },
-    {
-      title: "Product One",
-      category: "Bags",
-      brand: "Adidas",
-      price: "Rs 350",
-      image: "/prod2.jpg",
-      originalPrice: "450",
-    },
-    {
-      title: "Kids Tshirt",
-      category: "Footwear",
-      brand: "Nike",
-      price: "Rs 250",
-      image: "/prod1.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Review Check",
-      category: "Beauty",
-      brand: "Puma",
-      price: "Rs 1000",
-      image: "/prod4-1.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Product One",
-      category: "Jewellery",
-      brand: "Adidas",
-      price: "Rs 350",
-      image: "/prod2.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Kids Tshirt",
-      category: "Beauty",
-      brand: "Nike",
-      price: "Rs 250",
-      image: "/prod3.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Review Check",
-      category: "Jewellery",
-      brand: "Puma",
-      price: "Rs 1000",
-      image: "/prod4-1.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Product One",
-      category: "Footwear",
-      brand: "Adidas",
-      price: "Rs 350",
-      image: "/prod2.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Kids Tshirt",
-      category: "Bags",
-      brand: "Nike",
-      price: "Rs 250",
-      image: "/prod3.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Review Check",
-      category: "Fashion",
-      brand: "Puma",
-      price: "Rs 1000",
-      image: "/prod4-1.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Women TShirt",
-      category: "Bags",
-      brand: "Nike",
-      price: "Rs 150",
-      image: "/prod1.jpg",
-      originalPrice: "250",
-    },
-    {
-      title: "Kids Tshirt",
-      category: "Bags",
-      brand: "Nike",
-      price: "Rs 250",
-      image: "/prod3.jpg",
-      originalPrice: "250",
-    },
-  ];
+  });
+
+  const fetchProducts = async () => {
+    try {
+      const res = await axiosAuth.get("/product/all");
+      setProducts(res.data.products);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Helper function to pick N random items
-  const getRandomProductsByCategory = (categories, products, count = 3) => {
-    const result = [];
+  // const getRandomProductsByCategory = (categories, products, count = 3) => {
+  //   const result = [];
 
-    categories.forEach((cat) => {
-      // Filter products of this category
-      const categoryProducts = products.filter((p) => p.category === cat);
+  //   categories.forEach((cat) => {
+  //     const categoryProducts = products.filter((p) => p.category === cat);
 
-      // Shuffle products and pick `count` items
-      const shuffled = categoryProducts.sort(() => 0.5 - Math.random());
+  //     const shuffled = categoryProducts.sort(() => 0.5 - Math.random());
 
-      // Add top `count` products to result
-      result.push(...shuffled.slice(0, count));
-    });
+  //     result.push(...shuffled.slice(0, count));
+  //   });
 
-    return result;
-  };
-  const productList = getRandomProductsByCategory(Category, productsList, 3);
+  //   return result;
+  // };
+  // const productList = getRandomProductsByCategory(Category, productsList, 3);
   return (
     <Box sx={{ mt: 3 }}>
       <Box
@@ -290,7 +311,7 @@ export default function HomePage() {
               alignItems: "stretch",
             }}
           >
-            {productList.map((product, index) => (
+            {products.map((product, index) => (
               <Grid item key={index} sx={{ flex: "0 0 260px", maxWidth: "260px", display: "flex" }}>
                 <Box
                   sx={{
@@ -303,59 +324,49 @@ export default function HomePage() {
                     flexDirection: "column",
                     transition: "0.3s",
                     height: 420,
-                    // "&:hover": {
-                    //   transform: "translateY(-5px)",
-                    //   boxShadow: "0px 4px 16px rgba(0,0,0,0.2)",
-                    // },
-                  }}>
-                  {/* Image */}
+                  }}
+                >
                   <Box sx={{ width: "100%", height: 250, overflow: "hidden" }}>
                     <img
-                      src={product.image}
-                      alt={product.title}
+                      src={`${import.meta.env.VITE_DEVELOPMENT_URL}${product.images?.[0]}`}
+                      alt={product.name}
                       style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
                       }}
                     />
+
                   </Box>
-                  {/* Content */}
+
                   <Box sx={{ p: 2, display: "flex", flexDirection: "column", flexGrow: 1 }}>
                     <Typography variant="body2" sx={{ color: "gray", mt: 0.5, fontSize: "12px" }}>
-                      {product.category} — {product.brand}
+                      {product.category?.name || product.category} — {product.brand?.name || product.brand}
                     </Typography>
+
                     <Typography variant="h6" fontWeight={600} sx={{ fontSize: "16px", color: "#0A1D37" }}>
-                      {product.title}
+                      {product.name}
                     </Typography>
-                    <Box
-                      sx={{
-                        mt: 1,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
+
+                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <Typography
                         variant="body2"
-                        sx={{
-                          textDecoration: "line-through",
-                          color: "gray",
-                          fontSize: "12px",
-                        }}
+                        sx={{ textDecoration: "line-through", color: "gray", fontSize: "12px" }}
                       >
-                        Rs.{product.originalPrice}
+                        Rs.{product.originalPrice || product.price + 200}
                       </Typography>
+
                       <Typography
                         variant="h6"
                         fontWeight={700}
                         sx={{ fontSize: "18px", color: "#0A1D37" }}
                       >
-                        {product.price}
+                        Rs.{product.price}
                       </Typography>
                     </Box>
+
                     <Button
-                     onClick={() => dispatch(addItem({ ...product, id: index }))}
+                      onClick={() => dispatch(addItem({ ...product, id: product._id }))}
                       variant="outlined"
                       fullWidth
                       sx={{
@@ -380,6 +391,7 @@ export default function HomePage() {
                 </Box>
               </Grid>
             ))}
+
           </Grid>
         </Box>
       </Box>

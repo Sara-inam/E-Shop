@@ -23,11 +23,11 @@ const CategoryPage = () => {
   const [openModal, setOpenModal] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [selectedGender, setSelectedGender] = useState("");
+  const [editCategory, setEditCategory] = useState(null);
 
   const subCategoryOptions = ["Men", "Women", "Kids"];
+  const token = localStorage.getItem("authToken");
 
-  // Create axios instance with token
-  const token = localStorage.getItem("authToken"); // ensure login stores token in localStorage
   const axiosAuth = axios.create({
     baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
     headers: {
@@ -38,41 +38,63 @@ const CategoryPage = () => {
   const fetchCategories = async () => {
     try {
       const response = await axiosAuth.get("/category/all");
-      setCategories(response.data.categories);
+      setCategories(response.data.categories || []);
     } catch (err) {
       console.error("Error loading categories", err);
       alert("Failed to load categories. Make sure you are logged in.");
     }
   };
 
-  const handleAddCategory = async () => {
+  const handleDelete = async (id) => {
+    try {
+      await axiosAuth.delete(`/category/delete/${id}`);
+      setCategories(categories.filter((cat) => cat && cat._id !== id));
+    } catch (err) {
+      console.error("Error deleting category", err);
+      alert("Failed to delete category");
+    }
+  };
+
+  const handleSaveCategory = async () => {
     if (!categoryName.trim() || !selectedGender) {
       alert("Please enter category name and select gender");
       return;
     }
 
     try {
-      const response = await axiosAuth.post("/category/create", {
-        name: categoryName,
-        gender: selectedGender,
-      });
+      if (editCategory && editCategory._id) {
+        // Update existing category
+        const response = await axiosAuth.put(`/category/update/${editCategory._id}`, {
+          name: categoryName,
+          gender: selectedGender,
+        });
 
-      setCategories([...categories, response.data.category]);
+        // Update the local state safely
+        setCategories(categories.map((cat) =>
+          cat && cat._id === editCategory._id
+            ? { ...cat, name: categoryName, gender: selectedGender } // use updated values
+            : cat
+        ));
+
+        setEditCategory(null);
+      } else {
+        // Create new category
+        const response = await axiosAuth.post("/category/create", {
+          name: categoryName,
+          gender: selectedGender,
+        });
+        const newCategory = response.data.category || response.data;
+        setCategories([...categories, newCategory]);
+      }
+
+      // Reset modal
       setCategoryName("");
       setSelectedGender("");
       setOpenModal(false);
     } catch (error) {
-      console.error("Error creating category:", error);
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert("Unable to add category");
-      }
+      console.error("Error saving category:", error);
+      alert(error.response?.data?.message || "Unable to save category");
     }
-  };
-
-  const handleDelete = (id) => {
-    setCategories(categories.filter((cat) => cat._id !== id));
   };
 
   useEffect(() => {
@@ -85,7 +107,6 @@ const CategoryPage = () => {
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Category List
         </Typography>
-
         <Button variant="contained" onClick={() => setOpenModal(true)}>
           Add Category
         </Button>
@@ -102,13 +123,20 @@ const CategoryPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.map((cat) => (
-              <TableRow key={cat._id}>
+            {categories.filter(Boolean).map((cat) => (
+              <TableRow key={cat._id || cat.name}>
                 <TableCell>{cat.name}</TableCell>
                 <TableCell>{cat.gender}</TableCell>
                 <TableCell>{cat.brands ? cat.brands.join(", ") : "-"}</TableCell>
                 <TableCell>
-                  <IconButton>
+                  <IconButton
+                    onClick={() => {
+                      setEditCategory(cat);
+                      setCategoryName(cat.name || "");
+                      setSelectedGender(cat.gender || "");
+                      setOpenModal(true);
+                    }}
+                  >
                     <EditIcon color="primary" />
                   </IconButton>
                   <IconButton onClick={() => handleDelete(cat._id)}>
@@ -118,6 +146,7 @@ const CategoryPage = () => {
               </TableRow>
             ))}
           </TableBody>
+
         </Table>
       </TableContainer>
 
@@ -135,7 +164,7 @@ const CategoryPage = () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Add Category
+            {editCategory ? "Edit Category" : "Add Category"}
           </Typography>
           <TextField
             fullWidth
@@ -158,8 +187,8 @@ const CategoryPage = () => {
               <option key={sub} value={sub}>{sub}</option>
             ))}
           </TextField>
-          <Button fullWidth variant="contained" onClick={handleAddCategory}>
-            Save
+          <Button fullWidth variant="contained" onClick={handleSaveCategory}>
+            {editCategory ? "Update" : "Save"}
           </Button>
         </Box>
       </Modal>

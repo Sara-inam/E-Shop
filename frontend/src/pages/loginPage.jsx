@@ -27,7 +27,7 @@ const LoginPage = () => {
         setErrorMsg('');
         try {
             const response = await axios.post(
-                'https://adjusted-convert-costs-outdoor.trycloudflare.com/api/auth/login',
+                'https://exemption-cornwall-serum-kernel.trycloudflare.com/api/auth/login',
                 formData
             );
             console.log(response.data); 

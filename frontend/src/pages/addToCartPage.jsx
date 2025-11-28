@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Grid,
@@ -19,13 +19,51 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import axios from "axios";
 
 export default function CartPage() {
     const dispatch = useDispatch();
-    const cartItems = useSelector((state) => state.cart.items);
+    const cartItems = useSelector((state) => state.cart.items); // Array of { id, quantity }
+    const [productsData, setProductsData] = useState([]);
 
-    const totalPrice = cartItems.reduce(
-        (acc, item) => acc + parseInt(item.originalPrice) * item.quantity,
+    const axiosAuth = axios.create({
+        baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+    });
+
+    // Fetch product details for cart items
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                if (cartItems.length === 0) {
+                    setProductsData([]);
+                    return;
+                }
+
+                // Fetch products by IDs
+                const productPromises = cartItems.map(item =>
+                    axiosAuth.get(`/product/${item.id}`)
+                );
+                const responses = await Promise.all(productPromises);
+
+                const fullProducts = responses.map((res, idx) => ({
+                    ...res.data.product, // Assuming backend returns { product: {...} }
+                    quantity: cartItems[idx].quantity
+                }));
+
+                setProductsData(fullProducts);
+            } catch (error) {
+                console.error("Failed to fetch cart products", error);
+            }
+        };
+
+        fetchProducts();
+    }, [cartItems]);
+
+    const totalPrice = productsData.reduce(
+        (acc, item) => acc + parseInt(item.price) * item.quantity,
         0
     );
 
@@ -35,14 +73,14 @@ export default function CartPage() {
                 Products in Cart
             </Typography>
 
-            {cartItems.length === 0 ? (
+            {productsData.length === 0 ? (
                 <Typography variant="h6" sx={{ mt: 5, textAlign: "center" }}>
                     Cart is Empty.
                 </Typography>
             ) : (
                 <>
                     <Grid container spacing={3}>
-                        {cartItems.map((item, index) => (
+                        {productsData.map((item, index) => (
                             <Grid item xs={12} key={index}>
                                 <Card
                                     sx={{
@@ -58,8 +96,8 @@ export default function CartPage() {
                                 >
                                     <CardMedia
                                         component="img"
-                                        image={item.image}
-                                        alt={item.title}
+                                        image={item.images?.[0] ? `${import.meta.env.VITE_DEVELOPMENT_URL}${item.images[0]}` : "/placeholder.png"}
+                                        alt={item.name}
                                         sx={{
                                             width: 180,
                                             height: "100%",
@@ -69,31 +107,31 @@ export default function CartPage() {
                                     />
                                     <CardContent sx={{ flexGrow: 1, pl: 3, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                                         <Box>
-                                            <Typography fontWeight={600} variant="h6">{item.title}</Typography>
-                                            <Typography variant="body2" color="gray">{item.category} — {item.brand}</Typography>
-                                            <Typography sx={{ ml: "auto", fontWeight: 700 }}>Rs.{parseInt(item.originalPrice)}</Typography>
+                                            <Typography fontWeight={600} variant="h6">{item.name}</Typography>
+                                            <Typography variant="body2" color="gray">{item.category?.name || item.category} — {item.brand?.name || item.brand}</Typography>
+                                            <Typography sx={{ ml: "auto", fontWeight: 700 }}>Rs.{parseInt(item.price)}</Typography>
                                         </Box>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                             <IconButton
-                                                onClick={() => dispatch(decrementQuantity(item.title))}
-                                                sx={{
-                                                    border: "1px solid #ddd",
-                                                    borderRadius: "5px",
-                                                    width: 36,
-                                                    height: 36,
-                                                    p: 0,
-                                                }}
+                                                onClick={() => dispatch(decrementQuantity(item._id))}
+                                                sx={{ border: "1px solid #ddd", borderRadius: "5px", width: 36, height: 36, p: 0 }}
                                             >
                                                 <RemoveIcon />
                                             </IconButton>
                                             <Typography>{item.quantity}</Typography>
-                                            <IconButton onClick={() => dispatch(incrementQuantity(item.title))} sx={{ border: "1px solid #ddd",borderRadius: "5px", width: 36, height: 36, p: 0, }}>
+                                            <IconButton
+                                                onClick={() => dispatch(incrementQuantity(item._id))}
+                                                sx={{ border: "1px solid #ddd", borderRadius: "5px", width: 36, height: 36, p: 0 }}
+                                            >
                                                 <AddIcon />
                                             </IconButton>
-                                            <IconButton onClick={() => dispatch(removeItem(item.title))} sx={{ color: "red",borderRadius: "5px", width: 36, height: 36, p: 0, }}>
+                                            <IconButton
+                                                onClick={() => dispatch(removeItem(item._id))}
+                                                sx={{ color: "red", borderRadius: "5px", width: 36, height: 36, p: 0 }}
+                                            >
                                                 <DeleteIcon />
                                             </IconButton>
-                                            <Typography sx={{ ml: "auto", fontWeight: 700 }}>Rs.{parseInt(item.originalPrice) * item.quantity}</Typography>
+                                            <Typography sx={{ ml: "auto", fontWeight: 700 }}>Rs.{parseInt(item.price) * item.quantity}</Typography>
                                         </Box>
                                     </CardContent>
                                 </Card>
@@ -117,7 +155,7 @@ export default function CartPage() {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
                         <Typography variant="body1" sx={{ mb: 1 }}>
-                            Items: {cartItems.length}
+                            Items: {productsData.length}
                         </Typography>
                         <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
                             Total: Rs.{totalPrice}
@@ -133,6 +171,5 @@ export default function CartPage() {
                 </>
             )}
         </Box>
-
     );
 }
