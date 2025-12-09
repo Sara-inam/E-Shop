@@ -1,21 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-    Box,
-    Grid,
-    Typography,
-    Card,
-    CardMedia,
-    CardContent,
-    IconButton,
-    Button,
-    Divider,
-} from "@mui/material";
+import { Box, Grid, Typography, Card, CardMedia, CardContent, IconButton, Button, Divider, Snackbar, } from "@mui/material";
+// import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-    removeItem,
-    incrementQuantity,
-    decrementQuantity,
-} from "../redux/slices/cartSlice";
+import { removeItem, incrementQuantity, decrementQuantity, } from "../redux/slices/cartSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -23,42 +10,43 @@ import axios from "axios";
 
 export default function CartPage() {
     const dispatch = useDispatch();
-    const cartItems = useSelector((state) => state.cart.items); // Array of { id, quantity }
+    const cartItems = useSelector((state) => state.cart.items);
     const [productsData, setProductsData] = useState([]);
+    // const navigate = useNavigate();
 
+    const [toast, setToast] = useState({ open: false, message: "" });
+    const [loading, setLoading] = useState(false);
     const axiosAuth = axios.create({
         baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
         headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
     });
-
-    // Fetch product details for cart items
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                if (cartItems.length === 0) {
-                    setProductsData([]);
-                    return;
-                }
-
-                // Fetch products by IDs
-                const productPromises = cartItems.map(item =>
-                    axiosAuth.get(`/product/${item.id}`)
-                );
-                const responses = await Promise.all(productPromises);
-
-                const fullProducts = responses.map((res, idx) => ({
-                    ...res.data.product, // Assuming backend returns { product: {...} }
-                    quantity: cartItems[idx].quantity
-                }));
-
-                setProductsData(fullProducts);
-            } catch (error) {
-                console.error("Failed to fetch cart products", error);
+    const fetchProducts = async () => {
+        try {
+            if (cartItems.length === 0) {
+                setProductsData([]);
+                return;
             }
-        };
 
+            const productPromises = cartItems.map(item =>
+                axiosAuth.get(`/product/${item.id}`)
+            );
+            const responses = await Promise.all(productPromises);
+
+            const fullProducts = responses.map(res => ({
+                ...res.data.product,
+                quantity: cartItems.find(c => c.id === res.data.product._id)?.quantity || 1,
+                id: res.data.product._id
+            }));
+
+
+            setProductsData(fullProducts);
+        } catch (error) {
+            console.error("Failed to fetch cart products", error);
+        }
+    };
+    useEffect(() => {
         fetchProducts();
     }, [cartItems]);
 
@@ -66,6 +54,57 @@ export default function CartPage() {
         (acc, item) => acc + parseInt(item.price) * item.quantity,
         0
     );
+    const handlePlaceOrder = async () => {
+        if (cartItems.length === 0) {
+            alert("Cart is empty");
+            return;
+        }
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            alert("You are not logged in. Please log in first.");
+            return;
+        }
+        setLoading(true);
+        try {
+            // ⿡ Fetch product details from backend to get price
+            const productPromises = cartItems.map(item =>
+                axiosAuth.get(`/product/${item.id}`)
+            );
+            const responses = await Promise.all(productPromises);
+
+            const itemsWithPrice = responses.map(res => {
+                const product = res.data.product;
+                const cartItem = cartItems.find(c => c.id === product._id);
+                return {
+                    product: product._id,
+                    quantity: cartItem.quantity,
+                    price: product.price,
+                };
+            });
+            const totalPrice = itemsWithPrice.reduce(
+                (sum, item) => sum + item.price * item.quantity,
+                0
+            );
+            const orderData = {
+                items: itemsWithPrice,
+                totalPrice,
+                address: "123 Street, City",
+                paymentMethod: "COD",
+            };
+            await axiosAuth.post("/order/create", orderData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            alert("Order placed successfully!");
+            dispatch({ type: "cart/clearCart" });
+            setProductsData([]);
+        } catch (err) {
+            console.error(err.response?.data || err);
+            alert("Order failed! Check console for details.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Box sx={{ p: { xs: 2, md: 4 }, minHeight: "80vh", bgcolor: "#f9f9f9", position: "relative" }}>
@@ -113,20 +152,20 @@ export default function CartPage() {
                                         </Box>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                             <IconButton
-                                                onClick={() => dispatch(decrementQuantity(item._id))}
+                                                onClick={() => dispatch(decrementQuantity(item.id))}
                                                 sx={{ border: "1px solid #ddd", borderRadius: "5px", width: 36, height: 36, p: 0 }}
                                             >
                                                 <RemoveIcon />
                                             </IconButton>
                                             <Typography>{item.quantity}</Typography>
                                             <IconButton
-                                                onClick={() => dispatch(incrementQuantity(item._id))}
+                                                onClick={() => dispatch(incrementQuantity(item.id))}
                                                 sx={{ border: "1px solid #ddd", borderRadius: "5px", width: 36, height: 36, p: 0 }}
                                             >
                                                 <AddIcon />
                                             </IconButton>
                                             <IconButton
-                                                onClick={() => dispatch(removeItem(item._id))}
+                                                onClick={() => dispatch(removeItem(item.id))}
                                                 sx={{ color: "red", borderRadius: "5px", width: 36, height: 36, p: 0 }}
                                             >
                                                 <DeleteIcon />
@@ -164,12 +203,24 @@ export default function CartPage() {
                             variant="contained"
                             fullWidth
                             sx={{ py: 1.5, backgroundColor: "#0A1D37", "&:hover": { backgroundColor: "#FF5722" } }}
+                            onClick={handlePlaceOrder}
+                            disabled={loading}
                         >
-                            Place Order
+                            {loading ? "Processing..." : "Place Order"}
                         </Button>
+
                     </Box>
                 </>
             )}
+            <Snackbar
+                open={toast.open}
+                message={toast.message}
+                autoHideDuration={3000}
+                onClose={() => setToast({ open: false, message: "" })}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            />
+
         </Box>
+
     );
 }

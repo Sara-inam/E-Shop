@@ -1,4 +1,4 @@
-import { Box, Grid, Button, Card, CardContent, Typography, IconButton } from "@mui/material";
+import { Box, Grid, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle,DialogContent,DialogActions } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddProductDrawer from "./AddProductDrawer";
@@ -12,6 +12,11 @@ const ProductsPage = () => {
 
   // Start with empty products
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+
+
 
 
 
@@ -20,14 +25,16 @@ const ProductsPage = () => {
     setOpenDrawer(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await axiosAuth.delete(`/product/delete/${id}`);
-      setProducts(products.filter(product => product._id !== id));
-    } catch (error) {
-      console.error("Failed to delete product", error);
-    }
-  };
+  // const handleDelete = async () => {
+  //   try {
+  //     await axiosAuth.delete(`/product/delete/${confirmDelete.productId}`);
+  //     fetchProducts(); // ⬅ refresh after delete
+  //     setConfirmDelete({ open: false, productId: null });
+  //   } catch (error) {
+  //     console.error("Failed to delete product", error);
+  //   }
+  // };
+
 
 
   const axiosAuth = axios.create({
@@ -38,13 +45,14 @@ const ProductsPage = () => {
   });
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const response = await axiosAuth.get("/product/all");
-      // Assuming your API returns products in response.data.products
       setProducts(response.data.products);
     } catch (error) {
       console.error("Failed to fetch products", error);
     }
+    setLoading(false);
   };
   useEffect(() => {
     fetchProducts();
@@ -60,6 +68,25 @@ const ProductsPage = () => {
   const tdStyle = {
     padding: "12px",
     textAlign: "left"
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setProductToDelete(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete?._id) return;
+
+    try {
+      await axiosAuth.delete(`/product/delete/${productToDelete._id}`);
+      fetchProducts(); // refresh UI
+    } catch (error) {
+      console.error("Failed to delete product", error);
+    }
+
+    setDeleteConfirmOpen(false);
+    setProductToDelete(null);
   };
 
   return (
@@ -81,63 +108,89 @@ const ProductsPage = () => {
       </Box>
 
       <Box sx={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead style={{ backgroundColor: "#f5f5f5" }}>
-            <tr>
-              <th style={thStyle}>Image</th>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>Category</th>
-              <th style={thStyle}>Brand</th>
-              <th style={thStyle}>Description</th>
-              <th style={thStyle}>Price</th>
-              <th style={thStyle}>Quantity</th>
-              <th style={thStyle}>Actions</th>
-            </tr>
-          </thead>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+            <img src="/loader.gif" alt="Loading..." style={{ width: "100px", height: "100px", color: "#0A1D37" }} />
+          </Box>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead style={{ backgroundColor: "#f5f5f5" }}>
+              <tr>
+                <th style={thStyle}>Image</th>
+                <th style={thStyle}>Name</th>
+                <th style={thStyle}>Category</th>
+                <th style={thStyle}>Brand</th>
+                <th style={thStyle}>Description</th>
+                <th style={thStyle}>Price</th>
+                <th style={thStyle}>Quantity</th>
+                <th style={thStyle}>Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {products &&
-              products
-                .filter(item => item) // filter out undefined/null
-                .map((item, index) => (
-                  <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
-                    <td style={tdStyle}>
-                      {item.images && item.images.length > 0 && (
-                        <img
-                          src={`${import.meta.env.VITE_DEVELOPMENT_URL}${item.images[0]}`}
-                          alt={item.name}
-                          style={{
-                            width: "60px",
-                            height: "60px",
-                            borderRadius: "6px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      )}
-                    </td>
+            <tbody>
+              {products &&
+                products
+                  .filter(item => item) // filter out undefined/null
+                  .map((item, index) => (
+                    <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
+                      <td style={tdStyle}>
+                        {item.images && item.images.length > 0 && (
+                          <img
+                            src={`${import.meta.env.VITE_DEVELOPMENT_URL}${item.images[0]}`}
+                            alt={item.name}
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              borderRadius: "6px",
+                              objectFit: "cover",
+                            }}
+                          />
+                        )}
+                      </td>
 
-                    <td style={tdStyle}>{item.name}</td>
-                    <td style={tdStyle}>{item.category?.name || item.category}</td>
-                    <td style={tdStyle}>{item.brand?.name || item.brand}</td>
-                    <td style={tdStyle}>{item.description}</td>
-                    <td style={tdStyle}>{item.price}</td>
-                    <td style={tdStyle}>{item.quantity}</td>
+                      <td style={tdStyle}>{item.name}</td>
+                      <td style={tdStyle}>{item.category?.name || item.category}</td>
+                      <td style={tdStyle}>{item.brand?.name || item.brand}</td>
+                      <td style={tdStyle}>{item.description}</td>
+                      <td style={tdStyle}>{item.price}</td>
+                      <td style={tdStyle}>{item.quantity}</td>
 
-                    <td style={tdStyle}>
-                      <IconButton size="small" onClick={() => handleEdit(item)}>
-                        <EditIcon color="primary" />
-                      </IconButton>
+                      <td style={tdStyle}>
+                        <IconButton size="small" onClick={() => handleEdit(item)}>
+                          <EditIcon color="primary" />
+                        </IconButton>
 
-                      <IconButton size="small" onClick={() => handleDelete(item._id)}>
-                        <DeleteIcon color="error" />
-                      </IconButton>
-                    </td>
-                  </tr>
-                ))}
-          </tbody>
+                        <IconButton size="small" onClick={() => {
+                          setProductToDelete(item);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        >
+                          <DeleteIcon color="error" />
+                        </IconButton>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
 
-        </table>
+          </table>
+        )}
       </Box>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={cancelDelete}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+
+        <DialogContent>
+          Are you sure you want to delete "{productToDelete?.name}"?
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={cancelDelete}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error">Yes, Delete</Button>
+        </DialogActions>
+      </Dialog>
+
 
       <AddProductDrawer
         openDrawer={openDrawer}

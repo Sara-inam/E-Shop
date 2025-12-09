@@ -59,7 +59,7 @@ const SignUpPage = () => {
 
     try {
       const response = await axios.post(
-        "https://exemption-cornwall-serum-kernel.trycloudflare.com/api/auth/signup",
+        "https://anywhere-relation-one-producer.trycloudflare.com/api/auth/signup",
         payload,
         {
           headers: {

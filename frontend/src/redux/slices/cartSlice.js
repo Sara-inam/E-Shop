@@ -25,7 +25,7 @@ const cartSlice = createSlice({
         // },
         addItem: (state, action) => {
             const item = action.payload;
-            const existingItem = state.items.find(i => i.title === item.title);
+            const existingItem = state.items.find(i => i.id === item.id); // use id, not title
 
             if (existingItem) {
                 existingItem.quantity += 1;
@@ -34,41 +34,47 @@ const cartSlice = createSlice({
             }
 
             state.totalItems = state.items.reduce((acc, i) => acc + i.quantity, 0);
-            state.totalAmount = state.items.reduce((acc, i) => acc + parseInt(i.originalPrice) * i.quantity, 0);
+            state.totalAmount = state.items.reduce(
+                (acc, i) => acc + parseInt(i.price) * i.quantity,
+                0
+            );
         },
 
+
         incrementQuantity: (state, action) => {
-            const item = state.items.find(i => i.title === action.payload);
+            const item = state.items.find(i => i.id === action.payload);
             if (item) item.quantity += 1;
             state.totalItems = state.items.reduce((acc, i) => acc + i.quantity, 0);
             state.totalAmount = state.items.reduce(
-                (acc, i) => acc + parseInt(i.originalPrice) * i.quantity,
+                (acc, i) => acc + parseInt(i.price) * i.quantity,
                 0
             );
         },
 
         decrementQuantity: (state, action) => {
-            const item = state.items.find(i => i.title === action.payload);
+            const item = state.items.find(i => i.id === action.payload);
             if (item) {
                 item.quantity -= 1;
                 if (item.quantity <= 0) {
-                    state.items = state.items.filter(i => i.title !== action.payload);
+                    state.items = state.items.filter(i => i.id !== action.payload);
                 }
             }
             state.totalItems = state.items.reduce((acc, i) => acc + i.quantity, 0);
             state.totalAmount = state.items.reduce(
-                (acc, i) => acc + parseInt(i.originalPrice) * i.quantity,
+                (acc, i) => acc + parseInt(i.price) * i.quantity,
                 0
             );
         },
+
         removeItem: (state, action) => {
-            state.items = state.items.filter(i => i.title !== action.payload);
+            state.items = state.items.filter(i => i.id !== action.payload);
             state.totalItems = state.items.reduce((acc, i) => acc + i.quantity, 0);
             state.totalAmount = state.items.reduce(
-                (acc, i) => acc + parseInt(i.originalPrice) * i.quantity,
+                (acc, i) => acc + parseInt(i.price) * i.quantity,
                 0
             );
         },
+
 
         clearCart: (state) => {
             state.items = [];

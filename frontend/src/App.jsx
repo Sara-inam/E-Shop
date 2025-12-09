@@ -19,9 +19,9 @@ function App() {
           path="/"
           element={
             <>
-              <Header />
+              {/* <Header /> */}
               <Products/>
-              <Footer/>
+              {/* <Footer/> */}
             </>
           }
         />

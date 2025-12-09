@@ -1,135 +1,30 @@
-import React, { useState } from "react";
-import { Box, Typography, Checkbox, FormControlLabel, Divider, Grid, Button } from "@mui/material";
-import SortIcon from "@mui/icons-material/Sort";
+import { useState, useEffect, useRef } from "react";
+import { Box, Typography, Radio, FormControlLabel, Divider, Grid, Button } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { addItem } from "../redux/slices/cartSlice";
 import axios from "axios";
-import { useEffect } from "react";
-
+import Header from "../components/Header";
+import { useSearchParams } from "react-router-dom";
 
 export default function HomePage() {
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [products, setProducts] = useState([]);
   const dispatch = useDispatch();
 
-  const [categories, setCategories] = useState({
-    men: false,
-    women: false,
-    kids: false,
-    accessories: false,
-    footwear: false,
-  });
+ 
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState({});
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "All");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get("search") || "");
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(10);
 
-  const Category = ["Home", "Fashion", "Bags", "Footwear", "Beauty", "Jewellery"];
-
-  const [brands, setBrands] = useState({
-    nike: false,
-    adidas: false,
-    puma: false,
-    levis: false,
-    zara: false,
-    hnm: false,
-  });
-
-  // const productsList = [
-  //   {
-  //     title: "Women TShirt",
-  //     category: "Fashion",
-  //     brand: "Nike",
-  //     price: "Rs 150",
-  //     image: "/prod1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Product One",
-  //     category: "Bags",
-  //     brand: "Adidas",
-  //     price: "Rs 350",
-  //     image: "/prod2.jpg",
-  //     originalPrice: "450",
-  //   },
-  //   {
-  //     title: "Kids Tshirt",
-  //     category: "Footwear",
-  //     brand: "Nike",
-  //     price: "Rs 250",
-  //     image: "/prod1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Review Check",
-  //     category: "Beauty",
-  //     brand: "Puma",
-  //     price: "Rs 1000",
-  //     image: "/prod4-1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Product One",
-  //     category: "Jewellery",
-  //     brand: "Adidas",
-  //     price: "Rs 350",
-  //     image: "/prod2.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Kids Tshirt",
-  //     category: "Beauty",
-  //     brand: "Nike",
-  //     price: "Rs 250",
-  //     image: "/prod3.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Review Check",
-  //     category: "Jewellery",
-  //     brand: "Puma",
-  //     price: "Rs 1000",
-  //     image: "/prod4-1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Product One",
-  //     category: "Footwear",
-  //     brand: "Adidas",
-  //     price: "Rs 350",
-  //     image: "/prod2.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Kids Tshirt",
-  //     category: "Bags",
-  //     brand: "Nike",
-  //     price: "Rs 250",
-  //     image: "/prod3.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Review Check",
-  //     category: "Fashion",
-  //     brand: "Puma",
-  //     price: "Rs 1000",
-  //     image: "/prod4-1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Women TShirt",
-  //     category: "Bags",
-  //     brand: "Nike",
-  //     price: "Rs 150",
-  //     image: "/prod1.jpg",
-  //     originalPrice: "250",
-  //   },
-  //   {
-  //     title: "Kids Tshirt",
-  //     category: "Bags",
-  //     brand: "Nike",
-  //     price: "Rs 250",
-  //     image: "/prod3.jpg",
-  //     originalPrice: "250",
-  //   },
-  // ];
-
+  const isFirstMount = useRef(true);
   const axiosAuth = axios.create({
     baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
     headers: {
@@ -137,263 +32,225 @@ export default function HomePage() {
     },
   });
 
-  const fetchProducts = async () => {
+  // Debounce search and  update URL 
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return; 
+    }
+    const handler = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set("search", searchQuery);
+      if (selectedCategory && selectedCategory !== "All") params.set("category", selectedCategory);
+      const activeBrands = Object.keys(selectedBrands).filter((b) => selectedBrands[b]);
+      if (activeBrands.length > 0) params.set("brands", activeBrands.join(","));
+      params.set("page", currentPage);
+      params.set("limit", limit);
+
+      setSearchParams(params, { replace: true });
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery, selectedCategory, selectedBrands, currentPage]);
+
+  // Fetch categories 
+  const fetchCategories = async () => {
     try {
-      const res = await axiosAuth.get("/product/all");
-      setProducts(res.data.products);
+      const res = await axiosAuth.get("/category/all");
+      const cats = (res.data.categories || res.data || []).map(cat => ({
+        name: cat.name || cat.title || "Unknown"
+      }));
+      setCategories([{ name: "All" }, ...cats]);
     } catch (err) {
-      console.error("Failed to fetch products", err);
+      console.error("Category fetch error:", err);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchCategories();
   }, []);
 
-  // Helper function to pick N random items
-  // const getRandomProductsByCategory = (categories, products, count = 3) => {
-  //   const result = [];
+  const fetchBrands = async () => {
+    try {
+      const res = await axiosAuth.get("/brand/all");
+      const fetchedBrands = res.data.brands || res.data || [];
+      setBrands(fetchedBrands);
 
-  //   categories.forEach((cat) => {
-  //     const categoryProducts = products.filter((p) => p.category === cat);
+      const brandState = {};
+      fetchedBrands.forEach((b) => (brandState[b.name] = false));
+      setSelectedBrands(brandState);
+    } catch (err) {
+      console.error("Brand fetch error:", err);
+    }
+  };
+  // --- Fetch brands ---
+  useEffect(() => {
+    fetchBrands();
+  }, []);
 
-  //     const shuffled = categoryProducts.sort(() => 0.5 - Math.random());
+  // --- Fetch products ---
+  const fetchProducts = async (category, brands, search, page) => {
+    setLoading(true);
+    try {
+      const params = { page, limit };
+      let url = "";
+      if (category && category !== "All") {
+        url = `/product/category/${category}`;
+      } else if (brands.length > 0) {
+        url = `/product/brand/${brands[0]}`;
+      } else {
+        url = `/product/all`;
+      }
+      const res = await axiosAuth.get(url, { params });
+      let data = res.data.products || [];
+      if (brands.length > 0) {
+        data = data.filter((p) => brands.includes(p.brand?.name || p.brand));
+      }
+      if (search) {
+        data = data.filter((p) =>
+          p.name.toLowerCase().includes(search.toLowerCase())
+        );
+      }
 
-  //     result.push(...shuffled.slice(0, count));
-  //   });
+      setProducts(data);
+      setTotalPages(res.data.pagination?.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+    setLoading(false);
+  };
 
-  //   return result;
-  // };
-  // const productList = getRandomProductsByCategory(Category, productsList, 3);
+  //  Fetch products on state change 
+  useEffect(() => {
+    const activeBrands = Object.keys(selectedBrands).filter((b) => selectedBrands[b]);
+    fetchProducts(selectedCategory, activeBrands, debouncedSearch, currentPage);
+  }, [selectedCategory, selectedBrands, debouncedSearch, currentPage]);
+
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName);
+    setCurrentPage(1);
+  };
+
+  const handleBrandChange = (brandName) => {
+    const updated = {};
+    brands.forEach((b) => {
+      updated[b.name] = b.name === brandName; 
+    });
+    setSelectedBrands(updated);
+    setCurrentPage(1);
+  };
+
+  // displayed products is now just products (already filtered in fetch)
+  const displayedProducts = products;
+
+
+
   return (
-    <Box sx={{ mt: 3 }}>
-      <Box
-        sx={{
-          width: "100%",
-          background: "white",
-          borderTop: "1px solid #eee",
-          borderBottom: "1px solid #eee",
-          py: 1.5,
-          px: 3,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Left Side */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            cursor: "pointer",
-            color: "#0A1D37",
-            "&:hover": {
-              color: "#FF5722",
-              cursor: "pointer",
-            },
-          }}
-          onClick={() => setShowSidebar(!showSidebar)}>
+    <Box>
+      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+      {/* Categories */}
+      <Box sx={{ width: "100%", background: "white", borderTop: "1px solid #eee", borderBottom: "1px solid #eee", py: 1.5, px: 3, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box onClick={() => setShowSidebar(!showSidebar)} sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer", color: "#0A1D37" }}>
           <Typography sx={{ fontWeight: 600 }}>Shop By Category</Typography>
-          <Typography variant="body2" sx={{ transform: "translateY(2px)" }}>
-            ▼
-          </Typography>
+          <Typography variant="body2" sx={{ transform: "translateY(2px)" }}>▼</Typography>
         </Box>
 
-        {/* Right Side of Categories */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3, marginRight: "20px" }}>
-          {Category &&
-            Category.map((item, i) => (
-              <Typography
-                key={i}
-                sx={{
-                  cursor: "pointer",
-                  color: "#0A1D37",
-                  fontSize: "15px",
-                  transition: "0.3s ease",
-                  "&:hover": {
-                    color: "#FF5722",
-                    transform: "translateY(-3px)",
-                  },
-                }}
-              >
-                {item}
-              </Typography>
-            ))}
+          {categories.map((item, i) => (
+            <Typography
+              key={i}
+              sx={{
+                cursor: "pointer",
+                color: selectedCategory === item.name ? "#FF5722" : "#0A1D37",
+                fontWeight: selectedCategory === item.name ? 600 : 400,
+                transition: "0.3s ease",
+                "&:hover": { color: "#FF5722", transform: "translateY(-3px)" },
+              }}
+              onClick={() => handleCategoryClick(item.name)}
+            >
+              {item.name}
+            </Typography>
+          ))}
         </Box>
       </Box>
 
+      {/* Main content */}
       <Box sx={{ display: "flex", p: 3, mt: 2 }}>
-        {/*  Left Filter Bar  */}
-        <Box
-          sx={{
-            width: showSidebar ? "450px" : "0px",
-            pr: showSidebar ? 3 : 0,
-            overflow: "hidden",
-            transition: "all 0.4s ease",
-          }}
-        >
+        {/* Sidebar */}
+        <Box sx={{ width: showSidebar ? "260px" : "0px", pr: showSidebar ? 3 : 0, overflow: "hidden", transition: "all 0.4s ease" }}>
           {showSidebar && (
             <>
-              <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>
-                Filters
-              </Typography>
-
-              <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>
-                Category
-              </Typography>
-              <Box>
-                {Object.keys(categories).map((cat) => (
-                  <FormControlLabel
-                    key={cat}
-                    control={
-                      <Checkbox
-                        checked={categories[cat]}
-                        onChange={() =>
-                          setCategories({ ...categories, [cat]: !categories[cat] })
-                        }
-                      />
-                    }
-                    label={cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  />
-                ))}
-              </Box>
+              <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>Filters</Typography>
               <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>
-                Brand
-              </Typography>
-              <Box>
-                {Object.keys(brands).map((br) => (
-                  <FormControlLabel
-                    key={br}
-                    control={
-                      <Checkbox
-                        checked={brands[br]}
-                        onChange={() =>
-                          setBrands({ ...brands, [br]: !brands[br] })
-                        }
-                      />
-                    }
-                    label={br.charAt(0).toUpperCase() + br.slice(1)}
-                  />
-                ))}
-              </Box>
+              <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>Brand</Typography>
+
+              {brands.map((brand) => (
+                <FormControlLabel
+                  key={brand._id}
+                  control={
+                    <Radio
+                      checked={selectedBrands[brand.name] || false}
+                      onChange={() => handleBrandChange(brand.name)}
+                    />
+                  }
+                  label={brand.name}
+                />
+              ))}
             </>
           )}
         </Box>
 
-        {/* Product Grid */}
-        <Box sx={{ flexGrow: 1, transition: "0.4s ease" }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mb: 3,
-              alignItems: "center",
-            }}>
-            <Typography variant="h5" fontWeight={600} sx={{ color: "#0A1D37" }}>
-              All Products
-            </Typography>
-            {/* <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography variant="body1">{productList.length} Products</Typography>
-              <Button startIcon={<SortIcon />} variant="outlined" sx={{ borderRadius: 2 }}>
-                Sort by
-              </Button>
-            </Box> */}
-          </Box>
-          {/* Products Grid */}
-          <Grid
-            container
-            spacing={2}
-            sx={{
-              display: "flex",
-              justifyContent: "flex-start",
-              alignItems: "stretch",
-            }}
-          >
-            {products.map((product, index) => (
-              <Grid item key={index} sx={{ flex: "0 0 260px", maxWidth: "260px", display: "flex" }}>
-                <Box
-                  sx={{
-                    width: "100%",
-                    borderRadius: 2,
-                    boxShadow: "0px 2px 10px rgba(0,0,0,0.1)",
-                    overflow: "hidden",
-                    bgcolor: "white",
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "0.3s",
-                    height: 420,
-                  }}
-                >
-                  <Box sx={{ width: "100%", height: 250, overflow: "hidden" }}>
-                    <img
-                      src={`${import.meta.env.VITE_DEVELOPMENT_URL}${product.images?.[0]}`}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+        {/* Products */}
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h5" fontWeight={600} sx={{ color: "#0A1D37", mb: 3 }}>All Products</Typography>
 
-                  </Box>
-
-                  <Box sx={{ p: 2, display: "flex", flexDirection: "column", flexGrow: 1 }}>
-                    <Typography variant="body2" sx={{ color: "gray", mt: 0.5, fontSize: "12px" }}>
-                      {product.category?.name || product.category} — {product.brand?.name || product.brand}
-                    </Typography>
-
-                    <Typography variant="h6" fontWeight={600} sx={{ fontSize: "16px", color: "#0A1D37" }}>
-                      {product.name}
-                    </Typography>
-
-                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography
-                        variant="body2"
-                        sx={{ textDecoration: "line-through", color: "gray", fontSize: "12px" }}
-                      >
-                        Rs.{product.originalPrice || product.price + 200}
-                      </Typography>
-
-                      <Typography
-                        variant="h6"
-                        fontWeight={700}
-                        sx={{ fontSize: "18px", color: "#0A1D37" }}
-                      >
-                        Rs.{product.price}
-                      </Typography>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+              <img src="/loader.gif" alt="Loading..." style={{ width: "100px", height: "100px" }} />
+            </Box>
+          ) : (
+            <Grid container spacing={2}>
+              {displayedProducts.map((product) => (
+                <Grid item key={product._id} sx={{ flex: "0 0 260px", maxWidth: "260px" }}>
+                  <Box sx={{ width: "100%", borderRadius: 2, boxShadow: "0px 2px 10px rgba(0,0,0,0.1)", overflow: "hidden", bgcolor: "white", display: "flex", flexDirection: "column", transition: "0.3s", height: 420 }}>
+                    <Box sx={{ width: "100%", height: 250, overflow: "hidden" }}>
+                      <img src={`${import.meta.env.VITE_DEVELOPMENT_URL}${product.images?.[0]}`} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </Box>
-
-                    <Button
-                      onClick={() => dispatch(addItem({ ...product, id: product._id }))}
-                      variant="outlined"
-                      fullWidth
-                      sx={{
-                        mt: 2,
-                        borderColor: "#0A1D37",
-                        color: "#0A1D37",
-                        borderRadius: 2,
-                        py: 1,
-                        textTransform: "none",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        "&:hover": {
-                          backgroundColor: "#0A1D37",
-                          color: "white",
-                          borderColor: "#0A1D37",
-                        }
-                      }}
-                    >
-                      Add to cart
-                    </Button>
+                    <Box sx={{ p: 2, display: "flex", flexDirection: "column", flexGrow: 1 }}>
+                      <Typography variant="body2" sx={{ color: "gray", mt: 0.5, fontSize: "12px" }}>
+                        {product.category?.name || product.category} — {product.brand?.name || product.brand}
+                      </Typography>
+                      <Typography variant="h6" fontWeight={600} sx={{ fontSize: "16px", color: "#0A1D37" }}>{product.name}</Typography>
+                      <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Typography variant="body2" sx={{ textDecoration: "line-through", color: "gray", fontSize: "12px" }}>
+                          Rs.{product.originalPrice || product.price + 200}
+                        </Typography>
+                        <Typography variant="h6" fontWeight={700} sx={{ fontSize: "18px", color: "#0A1D37" }}>
+                          Rs.{product.price}
+                        </Typography>
+                      </Box>
+                      <Button onClick={() => dispatch(addItem({ ...product, id: product._id }))}
+                        variant="outlined" fullWidth sx={{ mt: 2, borderColor: "#0A1D37", color: "#0A1D37", borderRadius: 2, py: 1, textTransform: "none", fontSize: "14px", fontWeight: 600, "&:hover": { backgroundColor: "#0A1D37", color: "white", borderColor: "#0A1D37" } }}>
+                        Add to cart
+                      </Button>
+                    </Box>
                   </Box>
-                </Box>
-              </Grid>
-            ))}
-
-          </Grid>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Box>
+      </Box>
+
+      {/* Pagination */}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4, gap: 1, mb:5, }}>
+        <Button variant="outlined" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Prev</Button>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <Button key={i} variant={currentPage === i + 1 ? "contained" : "outlined"} onClick={() => setCurrentPage(i + 1)}>{i + 1}</Button>
+        ))}
+        <Button variant="outlined" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
       </Box>
     </Box>
   );

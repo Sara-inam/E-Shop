@@ -8,13 +8,7 @@ import axios from 'axios';
 
 const LoginPage = () => {
     const navigate = useNavigate();
-
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        role: ''
-    });
-
+    const [formData, setFormData] = useState({ email: '', password: '', role: '' });
     const [errorMsg, setErrorMsg] = useState('');
 
     const handleChange = (e) => {
@@ -27,24 +21,25 @@ const LoginPage = () => {
         setErrorMsg('');
         try {
             const response = await axios.post(
-                'https://exemption-cornwall-serum-kernel.trycloudflare.com/api/auth/login',
+                'https://anywhere-relation-one-producer.trycloudflare.com/api/auth/login',
                 formData
             );
-            console.log(response.data); 
-            // console.log(response.data);
+            console.log(response.data);
             if (response.data.token) {
                 if (response.data.token) {
                     localStorage.setItem('authToken', response.data.token);
                     localStorage.setItem("userRole", response.data.user.role);
+                    if (response.data.user && response.data.user._id) {
+                        localStorage.setItem("userId", response.data.user._id);
+                    }
+
                 }
-                const role = response.data.role || response.data.user?.role; 
-
+                const role = response.data.role || response.data.user?.role;
                 // console.log("Role:", role);
-
                 if (role === 'admin') {
                     navigate("/dashboard");
                 } else if (role === "user") {
-                    navigate("/"); 
+                    navigate("/");
                 } else {
                     setErrorMsg("Unknown User");
                 }
@@ -61,50 +56,6 @@ const LoginPage = () => {
             <div className="relative w-full max-w-md">
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[92%] bg-gradient-to-r from-blue-400 to-blue-600  text-white rounded-2xl shadow-xl py-5 text-center z-10">
                     <h2 className="text-2xl font-semibold">Log in</h2>
-                    {/* <div className="flex justify-center gap-8 mt-8 text-white text-2xl">
-                        <FacebookOutlinedIcon
-                            sx={{
-                                fontSize: "20px",
-                                color: "white",
-                                transition: "0.3s ease",
-                                fontWeight: 100,
-                                mb: 2,
-                                "&:hover": {
-                                    color: "#FF5722",
-                                    transform: "translateY(-5px)",
-                                    cursor: "pointer",
-                                }
-                            }}
-                        />
-                        <GitHubIcon
-                            sx={{
-                                fontSize: "20px",
-                                color: "white",
-                                transition: "0.3s ease",
-                                fontWeight: 100,
-                                mb: 2,
-                                "&:hover": {
-                                    color: "#FF5722",
-                                    transform: "translateY(-5px)",
-                                    cursor: "pointer",
-                                }
-                            }}
-                        />
-                        <GoogleIcon
-                            sx={{
-                                fontSize: "20px",
-                                color: "white",
-                                transition: "0.3s ease",
-                                fontWeight: 100,
-                                mb: 2,
-                                "&:hover": {
-                                    color: "#FF5722",
-                                    transform: "translateY(-5px)",
-                                    cursor: "pointer",
-                                }
-                            }}
-                        />
-                    </div> */}
                 </div>
                 <div className="bg-white rounded-2xl shadow-lg pt-28 pb-8 px-6 mt-10">
                     <form onSubmit={handleSubmit}>

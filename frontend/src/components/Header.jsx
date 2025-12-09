@@ -1,6 +1,6 @@
-import * as React from 'react';
-import '../App.css';
-import { useNavigate } from 'react-router-dom';
+import * as React from "react";
+import "../App.css";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -8,123 +8,157 @@ import {
   Typography,
   IconButton,
   InputBase,
-  Button
-} from '@mui/material';
+  Button,
+  useMediaQuery,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+} from "@mui/material";
 
-import SearchIcon from '@mui/icons-material/Search';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import HeroCarousel from './HeroCarousel';
-import { useSelector } from 'react-redux';
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { useSelector } from "react-redux";
 
-
-
-export default function Header() {
+export default function Header({ searchQuery, setSearchQuery }) {
   const navigate = useNavigate();
-
   const cart = useSelector((state) => state.cart);
+
+  const isMobile = useMediaQuery("(max-width:900px)");
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
 
   return (
     <>
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static" sx={{ background: "white", color: "black", boxShadow: 0 }}>
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/891/891419.png"
-                alt="logo"
-                style={{ width: 35 }}
-              />
-              {/* <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              CLASSYSHOP
-            </Typography>
-            <Typography variant="caption" sx={{ letterSpacing: 2 }}>
-              BIG MEGA STORE
-            </Typography> */}
-            </Box>
+      <AppBar position="static" sx={{ background: "white", color: "black", boxShadow: 0 }}>
+        <Toolbar
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* Logo */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/891/891419.png"
+              alt="logo"
+              style={{ width: 35 }}
+            />
+            {!isMobile && (
+              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                CLASSYSHOP
+              </Typography>
+            )}
+          </Box>
+
+          {/* Search bar */}
+          {!isMobile && (
             <Box
               sx={{
-                background: "#e5e5e5",
-                width: "45%",
-                display: "flex",
-                alignItems: "center",
-                padding: "5px 12px",
-                borderRadius: "8px"
+                position: "relative",
+                flexGrow: 1,
+                maxWidth: "500px",
+                mx: 2,
               }}
             >
-              <InputBase
-                placeholder="Search for products.."
-                sx={{ flex: 1 }}
-              />
-              <SearchIcon />
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <Button
-                onClick={() => navigate('/login')}
-                sx={{ textTransform: "none", color: "black" }}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  px: 1,
+                  width: 400, // adjust width
+                }}
               >
-                Login
-              </Button>
-              {/* <Button
-              onClick={() => navigate('/login')}
-              sx={{ textTransform: "none",  color: "white", backgroundColor:"#0A1D37",transition: "0.3s ease", "&:hover": {
-                  // color: "#FF5722",
-                  transform: "translateY(-5px)",
-                  cursor: "pointer",
-                }}}
-            >
-              Login
-            </Button> */}
-              <Typography>|</Typography>
-              <Button
-                onClick={() => navigate('/signup')}
-                sx={{ textTransform: "none", color: "black", }}
-              >
-                SignUp
-              </Button>
-              {/* <Button
-              onClick={() => navigate('/signup')}
-              sx={{ textTransform: "none",padding:"5px", borderRadius:"10px", color: "white", backgroundColor:"#0A1D37",transition: "0.3s ease", "&:hover": {
-                  // color: "#FF5722",
-                  transform: "translateY(-5px)",
-                  cursor: "pointer",
-                } }}
-                // className="footer-subscribe-btn"
-            >
-              SignUp
-            </Button> */}
-              <IconButton onClick={() => navigate('/dashboard')} sx={{ position: "relative" }}>
-                <FavoriteBorderIcon />
-              </IconButton>
-               <IconButton onClick={() => navigate('/cart')} sx={{ position: "relative" }}>
-              <ShoppingCartIcon sx={{ color: "#0A1D37" }} />
-              {/* Cart item count badge */}
-              {cart.totalItems > 0 && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    backgroundColor: "red",
-                    color: "white",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    fontSize: 12,
-                  }}
-                >
-                  {cart.totalItems}
-                </Box>
-              )}
-            </IconButton>
+                <InputBase
+                  placeholder="Search for products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  sx={{ flex: 1 }} // takes remaining space
+                />
+                <IconButton>
+                  <SearchIcon />
+                </IconButton>
+              </Box>
             </Box>
-          </Toolbar>
-        </AppBar>
-      </Box>
-      {/* <HeroCarousel /> */}
+          )}
+
+          {/* Right buttons */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {!isMobile && (
+              <>
+                <Button onClick={() => navigate("/login")} sx={{ textTransform: "none", color: "black" }}>Login</Button>
+                <Typography>|</Typography>
+                <Button onClick={() => navigate("/signup")} sx={{ textTransform: "none", color: "black" }}>SignUp</Button>
+                <IconButton onClick={() => navigate("/dashboard")}>
+                  <FavoriteBorderIcon />
+                </IconButton>
+                <IconButton onClick={() => navigate("/cart")} sx={{ position: "relative" }}>
+                  <ShoppingCartIcon sx={{ color: "#0A1D37" }} />
+                  {cart.totalItems > 0 && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        backgroundColor: "red",
+                        color: "white",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        fontSize: 12,
+                      }}
+                    >
+                      {cart.totalItems}
+                    </Box>
+                  )}
+                </IconButton>
+              </>
+            )}
+
+            {/* Mobile hamburger */}
+            {isMobile && <IconButton onClick={toggleDrawer}><MenuIcon /></IconButton>}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+        <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer}>
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => navigate("/login")}>
+                <ListItemText primary="Login" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => navigate("/signup")}>
+                <ListItemText primary="SignUp" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => navigate("/dashboard")}>
+                <ListItemText primary="Favorites" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => navigate("/cart")}>
+                <ListItemText primary={`Cart(${cart.totalItems})`} />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </Box>
+      </Drawer>
     </>
   );
 }
