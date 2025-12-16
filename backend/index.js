@@ -5,35 +5,39 @@ import connectdb from "./src/db/db.js";
 import logger from "./src/config/logger.js";
 import app from './src/app.js';
 
-const server = express();   
-const allowedOrigins = [
-  "http://localhost:5173", // dev frontend
-  "https://monroe-grip-olympics-narrative.trycloudflare.com" // Cloudflare tunnel
-];
+const server = express();
 
+// ✅ CORS setup
+// Allows all origins for development/testing.
+// Later in production, replace "*" with an array of trusted frontend URLs.
 server.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true); // Postman or curl requests
-    if(allowedOrigins.indexOf(origin) === -1){
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
+  origin: "*", // allow any origin
   credentials: true,
-  methods: ["GET","POST","PUT","DELETE"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
+
+// ✅ Body parser
 server.use(express.json());
 
+// ✅ Simple homepage to avoid 404
+server.get("/", (req, res) => {
+  res.send("Backend is running!");
+});
 
-server.use('/api', app);
+// ✅ API routes
+server.use("/api", app);
 
+// ✅ Start server
 const startServer = async () => {
-  await connectdb();
-  const PORT = config.PORT;
-  server.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
-  });
+  try {
+    await connectdb();
+    const PORT = config.PORT || 5000;
+    server.listen(PORT, () => {
+      logger.info(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    logger.error("Failed to start server:", error);
+  }
 };
 
 startServer();
