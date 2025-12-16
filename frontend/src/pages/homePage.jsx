@@ -8,8 +8,6 @@ import { useSearchParams } from "react-router-dom";
 
 export default function HomePage() {
   const dispatch = useDispatch();
-
- 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -32,11 +30,10 @@ export default function HomePage() {
     },
   });
 
-  // Debounce search and  update URL 
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
-      return; 
+      return;
     }
     const handler = setTimeout(() => {
       const params = new URLSearchParams();
@@ -54,7 +51,7 @@ export default function HomePage() {
     return () => clearTimeout(handler);
   }, [searchQuery, selectedCategory, selectedBrands, currentPage]);
 
-  // Fetch categories 
+
   const fetchCategories = async () => {
     try {
       const res = await axiosAuth.get("/category/all");
@@ -84,12 +81,11 @@ export default function HomePage() {
       console.error("Brand fetch error:", err);
     }
   };
-  // --- Fetch brands ---
+
   useEffect(() => {
     fetchBrands();
   }, []);
 
-  // --- Fetch products ---
   const fetchProducts = async (category, brands, search, page) => {
     setLoading(true);
     try {
@@ -121,7 +117,6 @@ export default function HomePage() {
     setLoading(false);
   };
 
-  //  Fetch products on state change 
   useEffect(() => {
     const activeBrands = Object.keys(selectedBrands).filter((b) => selectedBrands[b]);
     fetchProducts(selectedCategory, activeBrands, debouncedSearch, currentPage);
@@ -135,7 +130,7 @@ export default function HomePage() {
   const handleBrandChange = (brandName) => {
     const updated = {};
     brands.forEach((b) => {
-      updated[b.name] = b.name === brandName; 
+      updated[b.name] = b.name === brandName;
     });
     setSelectedBrands(updated);
     setCurrentPage(1);
@@ -179,7 +174,7 @@ export default function HomePage() {
       {/* Main content */}
       <Box sx={{ display: "flex", p: 3, mt: 2 }}>
         {/* Sidebar */}
-        <Box sx={{ width: showSidebar ? "260px" : "0px", pr: showSidebar ? 3 : 0, overflow: "hidden", transition: "all 0.4s ease" }}>
+        <Box sx={{ width: showSidebar ? "320px" : "0px", pr: showSidebar ? 3 : 0, overflow: "hidden", transition: "all 0.4s ease" }}>
           {showSidebar && (
             <>
               <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>Filters</Typography>
@@ -216,7 +211,11 @@ export default function HomePage() {
                 <Grid item key={product._id} sx={{ flex: "0 0 260px", maxWidth: "260px" }}>
                   <Box sx={{ width: "100%", borderRadius: 2, boxShadow: "0px 2px 10px rgba(0,0,0,0.1)", overflow: "hidden", bgcolor: "white", display: "flex", flexDirection: "column", transition: "0.3s", height: 420 }}>
                     <Box sx={{ width: "100%", height: 250, overflow: "hidden" }}>
-                      <img src={`${import.meta.env.VITE_DEVELOPMENT_URL}${product.images?.[0]}`} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
                     </Box>
                     <Box sx={{ p: 2, display: "flex", flexDirection: "column", flexGrow: 1 }}>
                       <Typography variant="body2" sx={{ color: "gray", mt: 0.5, fontSize: "12px" }}>
@@ -245,7 +244,7 @@ export default function HomePage() {
       </Box>
 
       {/* Pagination */}
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4, gap: 1, mb:5, }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4, gap: 1, mb: 5, }}>
         <Button variant="outlined" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Prev</Button>
         {Array.from({ length: totalPages }, (_, i) => (
           <Button key={i} variant={currentPage === i + 1 ? "contained" : "outlined"} onClick={() => setCurrentPage(i + 1)}>{i + 1}</Button>

@@ -59,7 +59,7 @@ const SignUpPage = () => {
 
     try {
       const response = await axios.post(
-        "https://anywhere-relation-one-producer.trycloudflare.com/api/auth/signup",
+        "https://ecommerce-backend-mu-self.vercel.app/api/auth/signup",
         payload,
         {
           headers: {

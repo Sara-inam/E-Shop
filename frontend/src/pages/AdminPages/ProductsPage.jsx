@@ -1,4 +1,4 @@
-import { Box, Grid, Button, Card, CardContent, Typography, IconButton, Dialog, DialogTitle,DialogContent,DialogActions } from "@mui/material";
+import { Box, Grid, Button, Snackbar, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddProductDrawer from "./AddProductDrawer";
@@ -16,27 +16,17 @@ const ProductsPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
 
-
-
-
+  const [toast, setToast] = useState({ open: false, message: "" });
 
   const handleEdit = (product) => {
     setEditProduct(product);
     setOpenDrawer(true);
   };
 
-  // const handleDelete = async () => {
-  //   try {
-  //     await axiosAuth.delete(`/product/delete/${confirmDelete.productId}`);
-  //     fetchProducts(); // ⬅ refresh after delete
-  //     setConfirmDelete({ open: false, productId: null });
-  //   } catch (error) {
-  //     console.error("Failed to delete product", error);
-  //   }
-  // };
-
-
-
+  const showToast = (message) => {
+    setToast({ open: true, message });
+    setTimeout(() => setToast({ open: false, message: "" }), 3000);
+  };
   const axiosAuth = axios.create({
     baseURL: import.meta.env.VITE_DEVELOPMENT_URL,
     headers: {
@@ -48,7 +38,8 @@ const ProductsPage = () => {
     setLoading(true);
     try {
       const response = await axiosAuth.get("/product/all");
-      setProducts(response.data.products);
+      setProducts(response.data.products || []);
+
     } catch (error) {
       console.error("Failed to fetch products", error);
     }
@@ -81,13 +72,16 @@ const ProductsPage = () => {
     try {
       await axiosAuth.delete(`/product/delete/${productToDelete._id}`);
       fetchProducts(); // refresh UI
+      showToast(`Product "${productToDelete.name}" deleted successfully`);
     } catch (error) {
       console.error("Failed to delete product", error);
+      showToast(`Failed to delete product "${productToDelete.name}"`);
     }
 
     setDeleteConfirmOpen(false);
     setProductToDelete(null);
   };
+
 
   return (
     <Box sx={{ ml: "240px", p: 3 }}>
@@ -136,7 +130,7 @@ const ProductsPage = () => {
                       <td style={tdStyle}>
                         {item.images && item.images.length > 0 && (
                           <img
-                            src={`${import.meta.env.VITE_DEVELOPMENT_URL}${item.images[0]}`}
+                            src={item.images[0]} // Use Cloudinary URL directly
                             alt={item.name}
                             style={{
                               width: "60px",
@@ -180,18 +174,14 @@ const ProductsPage = () => {
         onClose={cancelDelete}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
-
         <DialogContent>
           Are you sure you want to delete "{productToDelete?.name}"?
         </DialogContent>
-
         <DialogActions>
           <Button onClick={cancelDelete}>Cancel</Button>
           <Button onClick={confirmDelete} color="error">Yes, Delete</Button>
         </DialogActions>
       </Dialog>
-
-
       <AddProductDrawer
         openDrawer={openDrawer}
         setOpenDrawer={setOpenDrawer}
@@ -199,6 +189,18 @@ const ProductsPage = () => {
         setEditProduct={setEditProduct}
         products={products}
         setProducts={setProducts}
+      />
+      <Snackbar
+        open={toast.open}
+        message={toast.message}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        ContentProps={{
+          sx: {
+            backgroundColor: toast.message.includes("✅") ? "green" : "red",
+            color: "white",
+            fontWeight: 600,
+          },
+        }}
       />
 
     </Box>

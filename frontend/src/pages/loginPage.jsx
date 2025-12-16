@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Checkbox, FormControlLabel } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// import GitHubIcon from '@mui/icons-material/GitHub';
-// import GoogleIcon from '@mui/icons-material/Google';
-// import FacebookOutlinedIcon from '@mui/icons-material/FacebookOutlined';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -21,7 +18,7 @@ const LoginPage = () => {
         setErrorMsg('');
         try {
             const response = await axios.post(
-                'https://anywhere-relation-one-producer.trycloudflare.com/api/auth/login',
+                'https://ecommerce-backend-mu-self.vercel.app/api/auth/login',
                 formData
             );
             console.log(response.data);
