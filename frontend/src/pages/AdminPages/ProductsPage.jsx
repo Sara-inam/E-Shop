@@ -15,6 +15,8 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [toast, setToast] = useState({ open: false, message: "" });
 
@@ -34,20 +36,24 @@ const ProductsPage = () => {
     },
   });
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await axiosAuth.get("/product/all");
-      setProducts(response.data.products || []);
+      const params = { page, limit: 10 };
+      const response = await axiosAuth.get("/product/all", { params });
 
+      setProducts(response.data.products || []);
+      setTotalPages(response.data.pagination?.totalPages || 1);
     } catch (error) {
       console.error("Failed to fetch products", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(currentPage);
+  }, [currentPage]);
 
   const thStyle = {
     padding: "12px",
@@ -109,7 +115,7 @@ const ProductsPage = () => {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead style={{ backgroundColor: "#f5f5f5" }}>
-              <tr>
+              <tr key={products._id}>
                 <th style={thStyle}>Image</th>
                 <th style={thStyle}>Name</th>
                 <th style={thStyle}>Category</th>
@@ -189,6 +195,7 @@ const ProductsPage = () => {
         setEditProduct={setEditProduct}
         products={products}
         setProducts={setProducts}
+        fetchProducts={fetchProducts}
       />
       <Snackbar
         open={toast.open}
@@ -202,7 +209,13 @@ const ProductsPage = () => {
           },
         }}
       />
-
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4, gap: 1, mb: 5, }}>
+        <Button variant="outlined" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Prev</Button>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <Button key={i} variant={currentPage === i + 1 ? "contained" : "outlined"} onClick={() => setCurrentPage(i + 1)}>{i + 1}</Button>
+        ))}
+        <Button variant="outlined" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
+      </Box>
     </Box>
   );
 

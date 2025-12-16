@@ -94,13 +94,7 @@ export default function Header({ searchQuery, setSearchQuery }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {!isMobile && (
               <>
-                <Button onClick={() => navigate("/login")} sx={{ textTransform: "none", color: "black" }}>Login</Button>
-                <Typography>|</Typography>
-                <Button onClick={() => navigate("/signup")} sx={{ textTransform: "none", color: "black" }}>SignUp</Button>
-                <IconButton onClick={() => navigate("/dashboard")}>
-                  <FavoriteBorderIcon />
-                </IconButton>
-                <IconButton onClick={() => navigate("/cart")} sx={{ position: "relative" }}>
+              <IconButton onClick={() => navigate("/cart")} sx={{ position: "relative" }}>
                   <ShoppingCartIcon sx={{ color: "#0A1D37" }} />
                   {cart.totalItems > 0 && (
                     <Box
@@ -123,6 +117,14 @@ export default function Header({ searchQuery, setSearchQuery }) {
                     </Box>
                   )}
                 </IconButton>
+                {/* <IconButton onClick={() => navigate("/dashboard")}>
+                  <FavoriteBorderIcon />
+                </IconButton> */}
+                <Button onClick={() => navigate("/login")} sx={{ textTransform: "none", color: "black" }}>Login</Button>
+                <Typography>|</Typography>
+                <Button onClick={() => navigate("/signup")} sx={{ textTransform: "none", color: "black" }}>SignUp</Button>
+                
+                
               </>
             )}
 

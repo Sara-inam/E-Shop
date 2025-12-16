@@ -3,12 +3,12 @@ import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema({
   name: { type: String, unique: true, trim: true, required: true },
-  description: { type: String, default:"" },
-  gender: {
-    type: String,
-    enum: ["Men", "Women", "Kids"], // only these values are allowed
-    required: true,
-  },
+  // description: { type: String, default:"" },
+  // gender: {
+  //   type: String,
+  //   enum: ["Men", "Women", "Kids"], 
+  //   required: true,
+  // },
  
   
 }, { timestamps: true });
