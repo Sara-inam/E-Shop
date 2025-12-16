@@ -11,6 +11,7 @@ app.use(express.json());
 app.use("/auth", authRouter);  
 app.use("/category", categoryRouter);   
 app.use("/product", productRouter);
+app.use("/brand", brandRouter);
  
       
 

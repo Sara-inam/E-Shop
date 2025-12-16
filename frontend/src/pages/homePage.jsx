@@ -177,7 +177,7 @@ export default function HomePage() {
         <Box sx={{ width: showSidebar ? "320px" : "0px", pr: showSidebar ? 3 : 0, overflow: "hidden", transition: "all 0.4s ease" }}>
           {showSidebar && (
             <>
-              <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>Filters</Typography>
+              <Typography variant="h6" mb={2} fontWeight={600} sx={{ color: "#0A1D37" }}>Filter by</Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>Brand</Typography>
 
@@ -193,6 +193,7 @@ export default function HomePage() {
                   label={brand.name}
                 />
               ))}
+               <Typography variant="subtitle1" fontWeight={600} mt={2} sx={{ color: "#0A1D37" }}>Price</Typography>
             </>
           )}
         </Box>
