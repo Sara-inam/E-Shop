@@ -82,6 +82,20 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
         >
           Logout
         </ListItemButton>
+        <ListItemButton
+          selected={selectedTab === "brands"}
+          onClick={() => setSelectedTab("brands")}
+          sx={{ borderRadius: 1, bgcolor: selectedTab === "brands" ? "#12345A" : "transparent" }}
+        >
+          Manage Brands
+        </ListItemButton>
+        <ListItemButton
+          selected={selectedTab === "orders"}
+          onClick={() => setSelectedTab("orders")}
+          sx={{ borderRadius: 1, bgcolor: selectedTab === "orders" ? "#12345A" : "transparent" }}
+        >
+          Orders
+        </ListItemButton>
       </List>
 
       {/* LOGOUT CONFIRMATION DIALOG */}
