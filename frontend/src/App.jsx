@@ -7,7 +7,6 @@ import Header from './components/Header';
 import Products from './components/Products';
 import Footer from './components/Footer';
 import CartPage from './pages/addToCartPage';
-import Dashboared from './components/Dashboared';
 import AdminDashboard from './pages/AdminPages/AdminDashboard';
 
 function App() {

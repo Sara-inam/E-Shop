@@ -43,13 +43,20 @@ const Sidebar = ({ selectedTab, setSelectedTab }) => {
         >
           Manage Categories
         </ListItemButton>
-         {/* <ListItemButton
-          selected={selectedTab === "brand" }
-          onClick={() => setSelectedTab("brand")}
-          sx={{ borderRadius: 1, bgcolor: selectedTab === "brand" ? "#12345A" : "transparent" }}
+        <ListItemButton
+          selected={selectedTab === "brands"}
+          onClick={() => setSelectedTab("brands")}
+          sx={{ borderRadius: 1, bgcolor: selectedTab === "brands" ? "#12345A" : "transparent" }}
         >
-          Add Brand
-        </ListItemButton> */}
+          Manage Brands
+        </ListItemButton>
+        <ListItemButton
+          selected={selectedTab === "orders"}
+          onClick={() => setSelectedTab("orders")}
+          sx={{ borderRadius: 1, bgcolor: selectedTab === "orders" ? "#12345A" : "transparent" }}
+        >
+          Orders
+        </ListItemButton>
       </List>
     </Box>
   );

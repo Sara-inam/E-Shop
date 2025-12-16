@@ -19,6 +19,7 @@ const AdminDashboard = () => {
         {selectedTab === "products" && <ProductsPage />}
         {selectedTab === "users" && <UsersPage />}
         {selectedTab === "categories" && <CategoryPage/>}
+        {selectedTab === "brands" && <div>Brands Page Content</div>}
       </Box>
     </Box>
   );

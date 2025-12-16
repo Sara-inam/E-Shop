@@ -5,7 +5,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 
-const CategoryPage = () => {
+const BrandPage = () => {
   const [categories, setCategories] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [categoryName, setCategoryName] = useState("");
@@ -15,7 +15,7 @@ const CategoryPage = () => {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  // const subCategoryOptions = ["Men", "Women", "Kids"];
+  const subCategoryOptions = ["Men", "Women", "Kids"];
   const token = localStorage.getItem("authToken");
 
   const axiosAuth = axios.create({
@@ -63,7 +63,16 @@ const CategoryPage = () => {
     setCategoryToDelete(null);
     setDeleteConfirmOpen(false);
   };
-  
+  // const handleDelete = async (id) => {
+  //   try {
+  //     await axiosAuth.delete(`/category/delete/${id}`);
+  //     setCategories(categories.filter((cat) => cat && cat._id !== id));
+  //     setToast({ open: true, message: "Category deleted successfully!", severity: "success" });
+  //   } catch (err) {
+  //     console.error("Error deleting category", err);
+  //     setToast({ open: true, message: "Failed to delete category", severity: "error" });
+  //   }
+  // };
 
   const handleSaveCategory = async () => {
     // Validation
@@ -123,10 +132,10 @@ const CategoryPage = () => {
     <Box sx={{ ml: "240px", p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Category List
+          Brand List
         </Typography>
         <Button variant="contained" onClick={() => setOpenModal(true)}>
-          Add Category
+          Add Brand
         </Button>
       </Box>
 
@@ -140,7 +149,7 @@ const CategoryPage = () => {
           <Table>
             <TableHead sx={{ bgcolor: "#f0f0f0" }}>
               <TableRow>
-                <TableCell><b>Category</b></TableCell>
+                <TableCell><b>Brand Title</b></TableCell>
                 <TableCell><b>Actions</b></TableCell>
               </TableRow>
             </TableHead>
@@ -148,6 +157,7 @@ const CategoryPage = () => {
               {categories.filter(Boolean).map((cat) => (
                 <TableRow key={cat._id || cat.name}>
                   <TableCell>{cat.name}</TableCell>
+                  <TableCell>{cat.brands ? cat.brands.join(", ") : "-"}</TableCell>
                   <TableCell>
                     <IconButton onClick={() => { setEditCategory(cat); setCategoryName(cat.name || ""); setSelectedGender(cat.gender || ""); setOpenModal(true); }}>
                       <EditIcon color="primary" />
@@ -214,7 +224,20 @@ const CategoryPage = () => {
             onChange={(e) => setCategoryName(e.target.value)}
             sx={{ mb: 2 }}
           />
-         
+          <TextField
+            fullWidth
+            label="Select Gender"
+            select
+            SelectProps={{ native: true }}
+            value={selectedGender}
+            onChange={(e) => setSelectedGender(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <option value=""></option>
+            {subCategoryOptions.map((sub) => (
+              <option key={sub} value={sub}>{sub}</option>
+            ))}
+          </TextField>
           <Button fullWidth variant="contained" onClick={handleSaveCategory}>
             {editCategory ? "Update" : "Save"}
           </Button>
@@ -225,4 +248,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage;
+export default BrandPage;
